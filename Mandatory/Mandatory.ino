@@ -85,56 +85,60 @@ void reverse() {
 void right_turn() {
     delay(500); // Wait until the car goes into the center
     MotorSpeed(255,-255);
-    delay(275);
+    delay(200);
     while(!digitalRead(M) || digitalRead(L2) || digitalRead(R2)) {
         MotorSpeed(100,-100);
         delay(10);
     }
 }
 int command = 0;
+bool trackCommand = false;
 void loop(){
-    tracking();
-    delay(10);
-    if (digitalRead(R1) && digitalRead(R2) && digitalRead(M) && digitalRead(L2) && digitalRead(L1)){
-        if (command == 0)
-            reverse();
-        if (command == 1)
-            right_turn();
-        command = (command + 1) % 2;
+    if (trackCommand == true) { 
+        tracking();
+        delay(10);
+        if (digitalRead(R1) && digitalRead(R2) && digitalRead(M) && digitalRead(L2) && digitalRead(L1)){
+            if (command == 0)
+                reverse();
+            if (command == 1)
+                right_turn();
+            command = (command + 1) % 2;
+        }
     }
-    //while(BT.available()){
-    //    char a = BT.read();
-    //    if (a == 'F') {
-    //        MotorSpeed(255,255);
-    //        delay(1000);
-    //        BT.write('O');
-    //        BT.write('K');
-    //        BT.write('\n');
-    //        MotorSpeed(0,0);
-    //    }
-    //    if (a == 'B') {
-    //        MotorSpeed(200,-200);
-    //        delay(800);
-    //        BT.write('O');
-    //        BT.write('K');
-    //        BT.write('\n');
-    //        MotorSpeed(0,0);
-    //    }
-    //    if (a == 'L') {
-    //        MotorSpeed(-200,200);
-    //        delay(500);
-    //        BT.write('O');
-    //        BT.write('K');
-    //        BT.write('\n');
-    //        MotorSpeed(0,0);
-    //    }
-    //    if (a == 'R') {
-    //        MotorSpeed(200,-200);
-    //        delay(500);
-    //        BT.write('O');
-    //        BT.write('K');
-    //        BT.write('\n');
-    //        MotorSpeed(0,0);
-    //    }
-    //}
+    while(BT.available()){
+        char a = BT.read();
+        if (a == 'F') {
+            MotorSpeed(255,255);
+            delay(1000);
+            BT.write("OK\n");
+            MotorSpeed(0,0);
+        }
+        if (a == 'B') {
+            MotorSpeed(200,-200);
+            delay(800);
+            BT.write("OK\n");
+            MotorSpeed(0,0);
+        }
+        if (a == 'L') {
+            MotorSpeed(-200,200);
+            delay(500);
+            BT.write("OK\n");
+            MotorSpeed(0,0);
+        }
+        if (a == 'R') {
+            MotorSpeed(200,-200);
+            delay(500);
+            BT.write("OK\n");
+            MotorSpeed(0,0);
+        }
+        if (a == 'T') {
+            trackCommand = true;
+            BT.write("Start Tracking\n");
+        }
+        if (a == 'S') {
+            trackCommand = false;
+            MotorSpeed(0,0);
+            BT.write("Stop Tracking\n");
+        }
+    }
 }
