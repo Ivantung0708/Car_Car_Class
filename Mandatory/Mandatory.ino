@@ -1,3 +1,5 @@
+#include<SoftwareSerial.h>
+
 int AIN1 = 2;
 int AIN2 = 3;
 int BIN1 = 5;
@@ -9,6 +11,8 @@ int L1 = 34;
 int M = 36;
 int R1 = 38;
 int R2 = 40;
+
+SoftwareSerial BT(11,10);
 void setup() {
     pinMode(L2,INPUT);
     pinMode(L1,INPUT);
@@ -22,6 +26,7 @@ void setup() {
     pinMode(PWMA,OUTPUT);
     pinMode(PWMB,OUTPUT);
     Serial.begin(9600);
+    BT.begin(9600);
 }
 
 void MotorSpeed(int A_speed, int B_speed) {
@@ -66,12 +71,10 @@ void tracking() {
         return;
     }
     MotorSpeed(150 + 80 * delta,150);
-    Serial.println(delta);
 }
 
 void reverse() {
-    // TODO! Let the car move for a while before turning back 
-    // so that RFID can detect the block
+    delay(500);
     MotorSpeed(255,-255);
     delay(300);
     while(!digitalRead(M)) {
@@ -82,23 +85,56 @@ void reverse() {
 void right_turn() {
     delay(500); // Wait until the car goes into the center
     MotorSpeed(255,-255);
-    delay(75);
-    while(!digitalRead(M) || digitalRead(L2) || digitalRead(R2) {
+    delay(275);
+    while(!digitalRead(M) || digitalRead(L2) || digitalRead(R2)) {
         MotorSpeed(100,-100);
         delay(10);
     }
 }
+int command = 0;
 void loop(){
     tracking();
-    delay(100);
+    delay(10);
     if (digitalRead(R1) && digitalRead(R2) && digitalRead(M) && digitalRead(L2) && digitalRead(L1)){
-        reverse();
-        while(!(digitalRead(R1) && digitalRead(R2) && digitalRead(M) && digitalRead(L2) && digitalRead(L1))) {
-            tracking();
-            delay(100);
-        }
-        if (digitalRead(R1) && digitalRead(R2) && digitalRead(M) && digitalRead(L2) && digitalRead(L1)) {
+        if (command == 0)
+            reverse();
+        if (command == 1)
             right_turn();
-        }
+        command = (command + 1) % 2;
     }
+    //while(BT.available()){
+    //    char a = BT.read();
+    //    if (a == 'F') {
+    //        MotorSpeed(255,255);
+    //        delay(1000);
+    //        BT.write('O');
+    //        BT.write('K');
+    //        BT.write('\n');
+    //        MotorSpeed(0,0);
+    //    }
+    //    if (a == 'B') {
+    //        MotorSpeed(200,-200);
+    //        delay(800);
+    //        BT.write('O');
+    //        BT.write('K');
+    //        BT.write('\n');
+    //        MotorSpeed(0,0);
+    //    }
+    //    if (a == 'L') {
+    //        MotorSpeed(-200,200);
+    //        delay(500);
+    //        BT.write('O');
+    //        BT.write('K');
+    //        BT.write('\n');
+    //        MotorSpeed(0,0);
+    //    }
+    //    if (a == 'R') {
+    //        MotorSpeed(200,-200);
+    //        delay(500);
+    //        BT.write('O');
+    //        BT.write('K');
+    //        BT.write('\n');
+    //        MotorSpeed(0,0);
+    //    }
+    //}
 }
