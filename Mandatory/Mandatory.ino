@@ -1,18 +1,23 @@
 #include<SoftwareSerial.h>
+#include<SPI.h>
+#include<MFRC522.h>
 
-int AIN1 = 2;
-int AIN2 = 3;
-int BIN1 = 5;
-int BIN2 = 6;
-int PWMA = 7;
-int PWMB = 12;
-int L2 = 32;
-int L1 = 34;
-int M = 36;
-int R1 = 38;
-int R2 = 40;
+#define AIN1 2
+#define AIN2 3
+#define BIN1 5
+#define BIN2 6
+#define PWMA 7
+#define PWMB 12
+#define L2 32
+#define L1 34
+#define M 36
+#define R1 38
+#define R2 40
+#define SS_PIN 53
+#define RST_PIN 9
 
 SoftwareSerial BT(11,10);
+MFRC522* mfrc522;
 void setup() {
     pinMode(L2,INPUT);
     pinMode(L1,INPUT);
@@ -25,8 +30,11 @@ void setup() {
     pinMode(BIN2,OUTPUT);
     pinMode(PWMA,OUTPUT);
     pinMode(PWMB,OUTPUT);
+    mfrc522 = new MFRC522(SS_PIN, RST_PIN);
+    mfrc522->PCD_Init();
     Serial.begin(9600);
     BT.begin(9600);
+    SPI.begin();
 }
 
 void MotorSpeed(int A_speed, int B_speed) {
@@ -105,6 +113,20 @@ void loop(){
             command = (command + 1) % 2;
         }
     }
+    if(!mfrc522 -> PICC_IsNewCardPresent()) {
+        goto FuncEnd;
+    } //PICC_IsNewCardPresent()：是否感應到新的卡片?
+    if(!mfrc522 -> PICC_ReadCardSerial()) {
+        goto FuncEnd;
+    } //PICC_ReadCardSerial()：是否成功讀取資料?
+    BT.write("**Card Detected:**\n");
+    for (byte i = 0; i < mfrc522->uid.size; i++) {
+        Serial.print(mfrc522->uid.uidByte[i], HEX);
+    }
+    mfrc522->PICC_DumpDetailsToSerial(&(mfrc522->uid)); //讀出 UID
+    mfrc522->PICC_HaltA(); // 讓同一張卡片進入停止模式 (只顯示一次)
+    mfrc522->PCD_StopCrypto1(); // 停止 Crypto1
+    FuncEnd:; 
     while(BT.available()){
         char a = BT.read();
         if (a == 'F') {
